@@ -22,42 +22,9 @@ def main():
         bh_geojson = json.load(f)
 
 
-    # Plotar os bares no pontos especificados de latitude e longitude
+    # Ajustar leitura latitude e longitude
     df = pd.read_csv('bares_restaurantes_reduzido.csv')
     df['coords'] = df['GEOMETRIA'].apply(parse_point)
-
-    all_markers = []
-    for _, row in df.iterrows():
-        # 1) escolhe o nome a exibir
-        nome_exibir = row['NOME_FANTASIA'] if pd.notna(row['NOME_FANTASIA']) and row['NOME_FANTASIA'].strip() else row['NOME']
-
-        # 2) formata o endereço completo
-        endereco = f"Endereço: {row['NOME_LOGRADOURO']}, {row['NUMERO_IMOVEL']}"
-        if pd.notna(row['COMPLEMENTO']) and row['COMPLEMENTO'].strip():
-            endereco += f" – {row['COMPLEMENTO']}"
-        endereco += f" – Bairro {row['NOME_BAIRRO']}"
-
-        # 3) converte indicador de alvará em texto
-        possui_alvara = 'Sim' if str(row['IND_POSSUI_ALVARA']).upper() in ('1','S','SIM','TRUE') else 'Não'
-
-        # 4) monta o conteúdo do popup
-        popup_content = html.Div([
-            html.B(nome_exibir), html.Br(),
-            f"Início da atividade: {row['DATA_INICIO_ATIVIDADE']}", html.Br(),
-            f"Possui alvará: {possui_alvara}", html.Br(),
-            endereco
-        ])
-
-        # 5) adiciona Tooltip + Popup no Marker
-        all_markers.append(
-            dl.Marker(
-                position=row['coords'],
-                children=[
-                    dl.Tooltip(nome_exibir),
-                    dl.Popup(popup_content)
-                ]
-            )
-        )
 
 
     # Criar app
@@ -80,14 +47,42 @@ def main():
             ])
     ])
 
+    # Callback que atualiza marcadores quando o usuário dá zoom e move o mapa
     @app.callback(
         Output("markers-layer", "children"),
-        Input("map", "zoom")
+        Input("map", "zoom"),
+        Input("map", "bounds")
     )
-    def update_markers(zoom):
-        if zoom and zoom >= 14:
-            return all_markers
-        return []
+    def update_markers(zoom, bounds):
+        # Só exibe pontos se o zoom for alto o suficiente
+        if not zoom or zoom < 16:
+            return []
+        if not bounds:
+            return []
+
+        (sw_lat, sw_lon), (ne_lat, ne_lon) = bounds
+        children = []
+        # Filtra apenas os pontos que estão dentro dos limites atuais do mapa
+        for _, row in df.iterrows():
+            lat, lon = row['coords']
+            if sw_lat <= lat <= ne_lat and sw_lon <= lon <= ne_lon:
+                nome = row['NOME_FANTASIA'] if pd.notna(row['NOME_FANTASIA']) and row['NOME_FANTASIA'].strip() else row['NOME']
+                popup_html = f"""\
+                    {nome} // 
+                    Início: {row['DATA_INICIO_ATIVIDADE']} // 
+                    Alvará: {'Sim' if str(row['IND_POSSUI_ALVARA']).upper() in ('1','S','SIM') else 'Não'} // 
+                    {row['NOME_LOGRADOURO']}, {row['NUMERO_IMOVEL']} – {row['NOME_BAIRRO']}"""
+
+                children.append(
+                    dl.Marker(
+                        position=[lat, lon],
+                        children=[
+                            dl.Tooltip(nome),
+                            dl.Popup(popup_html)
+                        ]
+                    )
+                )
+        return children
 
     # Abre o browser e roda
     Timer(1, open_browser).start()
