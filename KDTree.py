@@ -1,10 +1,3 @@
-import dash
-import dash_leaflet as dl
-from dash import html, Output, Input
-import pandas as pd
-import json
-import webbrowser
-from threading import Timer
 
 class KDNode:
     __slots__ = ("point", "index", "left", "right", "axis")
