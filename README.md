@@ -1,8 +1,8 @@
 # Trabalho Prático 1 - Algoritmos 2 (DCC/UFMG) [DCC207 - 2025/1]
 
-## Alessandro Mesa Teppa
-## Arthur Guimarães Ferreira
-## Leonardo Romano Andrade
+**Alessandro Mesa Teppa**
+**Arthur Guimarães Ferreira**
+**Leonardo Romano Andrade**
 
 Este programa cria uma aplicação web interativa em *Dash* que mostra, sobre um mapa de Belo Horizonte, os pontos de restaurantes e bares (incluindo participantes do Comida Di Buteco 2025). Ao iniciar, o script:
 
