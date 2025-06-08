@@ -25,7 +25,7 @@ def main():
 
 
     # Ajustar leitura latitude e longitude
-    df = pd.read_csv('bares_restaurantes_reduzido.csv')
+    df = pd.read_csv('Tabela_Bares_e_Restaurantes_e_CDB2025.csv')
     df['coords'] = df['GEOMETRIA'].apply(parse_point)
 
     # Prepara a lista de pontos para a KDTree
@@ -85,7 +85,8 @@ def main():
                 {"name": "Nome", "id": "nome"},
                 {"name": "Início",           "id": "data_inicio"},
                 {"name": "Possui Alvará",    "id": "alvara"},
-                {"name": "Endereço",         "id": "endereco"}
+                {"name": "Endereço",         "id": "endereco"},
+                {"name": "Participante do Comida Di Buteco 2025?", "id": "cdb2025"}
             ],
             data=[],      # será preenchido pelo callback
             style_cell={'textAlign': 'left', 'padding': '4px'},
@@ -120,6 +121,7 @@ def main():
             for idx in indices_visiveis:
                 row = df.iloc[idx]
                 lat, lon = row['coords']
+                is_cdb = str(row['CDB2025_Participante']).strip().upper() == "SIM"
                 nome_exibir = (
                     row['NOME_FANTASIA']
                     if pd.notna(row['NOME_FANTASIA']) and row['NOME_FANTASIA'].strip()
@@ -135,10 +137,11 @@ def main():
                     endereco += f" – {row['COMPLEMENTO']}"
                 endereco += f" – {row['NOME_BAIRRO']}"
                 popup_html = (
-                    f"<b>{nome_exibir}</b><br>"
-                    f"Início: {row['DATA_INICIO_ATIVIDADE']}<br>"
-                    f"Alvará: {possui_alvara}<br>"
-                    f"{endereco}"
+                    f"{nome_exibir} // "
+                    f"Início: {row['DATA_INICIO_ATIVIDADE']} // "
+                    f"Alvará: {possui_alvara} // "
+                    f"{endereco} // "
+                    f"CDB2025 Participante: {'Sim' if is_cdb else 'Não'}"
                 )
 
                 markers.append(
@@ -170,6 +173,7 @@ def main():
         for idx in indices_dentro:
             row = df.iloc[idx]
             lat, lon = row['coords']
+            is_cdb = str(row['CDB2025_Participante']).strip().upper() == "SIM"
             nome_exibir = (
                 row['NOME_FANTASIA']
                 if pd.notna(row['NOME_FANTASIA']) and row['NOME_FANTASIA'].strip()
@@ -181,10 +185,11 @@ def main():
                 endereco += f" – {row['COMPLEMENTO']}"
             endereco += f" – {row['NOME_BAIRRO']}"
             popup_html = (
-                f"<b>{nome_exibir}</b><br>"
-                f"Início: {row['DATA_INICIO_ATIVIDADE']}<br>"
-                f"Alvará: {possui_alvara}<br>"
-                f"{endereco}"
+                f"{nome_exibir} // "
+                f"Início: {row['DATA_INICIO_ATIVIDADE']} // "
+                f"Alvará: {possui_alvara} // "
+                f"{endereco} // "
+                f"CDB2025 Participante: {'Sim' if is_cdb else 'Não'}"
             )
 
             markers.append(

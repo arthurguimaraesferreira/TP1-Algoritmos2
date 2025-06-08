@@ -26,7 +26,7 @@ def main():
 
 
     # Ajustar leitura latitude e longitude
-    df = pd.read_csv('bares_restaurantes_reduzido.csv')
+    df = pd.read_csv('Tabela_Bares_e_Restaurantes_e_CDB2025.csv')
     df['coords'] = df['GEOMETRIA'].apply(parse_point)
 
     # Prepara a lista de pontos para a KDTree
@@ -61,7 +61,7 @@ def main():
                 # Grupo que receberá os marcadores filtrados
                 dl.GeoJSON(id="markers-layer", cluster=True, zoomToBoundsOnClick=True, superClusterOptions={"radius": 60}),
 
-                # 4.1) Ferramenta de desenho: permite desenhar apenas retângulos
+                # Ferramenta de desenho: permite desenhar apenas retângulos
                 dl.FeatureGroup([
                     dl.EditControl(
                         id="edit_control",
@@ -79,14 +79,15 @@ def main():
             ]
         ),
 
-        # 4.2) Tabela para exibir informações dos pontos dentro do retângulo
+        # Tabela para exibir informações dos pontos dentro do retângulo
         dash_table.DataTable(
             id="table",
             columns=[
                 {"name": "Nome", "id": "nome"},
                 {"name": "Início",           "id": "data_inicio"},
-                {"name": "Possui Alvará",    "id": "alvara"},
-                {"name": "Endereço",         "id": "endereco"}
+                {"name": "Possui Alvará?",    "id": "alvara"},
+                {"name": "Endereço",         "id": "endereco"},
+                {"name": "Participante do Comida Di Buteco 2025?", "id": "cdb2025"}
             ],
             data=[],      # será preenchido pelo callback
             style_cell={'textAlign': 'left', 'padding': '4px'},
@@ -137,6 +138,7 @@ def main():
         for idx in filtered_indices:
             row = df.iloc[idx]
             lat, lon = row['coords']
+            is_cdb = str(row['CDB2025_Participante']).strip().upper() == "SIM"
             nome_exibir = (
                 row['NOME_FANTASIA']
                 if pd.notna(row['NOME_FANTASIA']) and row['NOME_FANTASIA'].strip()
@@ -146,20 +148,24 @@ def main():
                 f"<b>{nome_exibir}</b><br>"
                 f"Início: {row['DATA_INICIO_ATIVIDADE']}<br>"
                 f"Alvará: {'Sim' if str(row['IND_POSSUI_ALVARA']).upper() in ('1','S','SIM') else 'Não'}<br>"
-                f"{row['NOME_LOGRADOURO']}, {row['NUMERO_IMOVEL']} – {row['NOME_BAIRRO']}"
+                f"{row['NOME_LOGRADOURO']}, {row['NUMERO_IMOVEL']} – {row['NOME_BAIRRO']}<br>"
+                f"<b>CDB2025 Participante:</b> {'Sim' if is_cdb else 'Não'}"
             )
 
             markers.append({
                 "lat": lat,
                 "lon": lon,
-                "popup": popup_text
+                "popup": popup_text,
+                "radius": 6,
+                "fillOpacity": 0.8
             })
 
             table_data.append({
                 "nome": nome_exibir,
                 "data_inicio": row["DATA_INICIO_ATIVIDADE"],
                 "alvara": "Sim" if str(row["IND_POSSUI_ALVARA"]).upper() in ("1", "S", "SIM") else "Não",
-                "endereco": f"{row['NOME_LOGRADOURO']}, {row['NUMERO_IMOVEL']} – {row['NOME_BAIRRO']}"
+                "endereco": f"{row['NOME_LOGRADOURO']}, {row['NUMERO_IMOVEL']} – {row['NOME_BAIRRO']}",
+                "cdb2025": "Sim" if is_cdb else "Não"
             })
 
         return dlx.dicts_to_geojson(markers), table_data
