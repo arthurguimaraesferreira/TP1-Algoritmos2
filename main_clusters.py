@@ -1,13 +1,13 @@
 import dash
 import dash_leaflet as dl
 import dash_leaflet.express as dlx
-from dash import html, Output, Input, dash_table
+from dash import html, Output, Input, dash_table, dcc
 import pandas as pd
 import json
 import webbrowser
 from threading import Timer
 
-from KDTree import KDNode, build_kdtree, range_search
+from KDTree import build_kdtree, range_search
 
 def open_browser():
     webbrowser.open_new("http://127.0.0.1:8050/")
@@ -26,7 +26,7 @@ def main():
 
 
     # Ajustar leitura latitude e longitude
-    df = pd.read_csv('Tabela_Bares_e_Restaurantes_e_CDB2025.csv')
+    df = pd.read_csv('Bares_e_CDB2025.csv')
     df['coords'] = df['GEOMETRIA'].apply(parse_point)
 
     # Prepara a lista de pontos para a KDTree
@@ -40,6 +40,15 @@ def main():
     app = dash.Dash(__name__)
 
     app.layout = html.Div([
+        html.Label("Filtrar participantes do Comida Di Buteco 2025:"),
+        dcc.Checklist(
+            id="cdb_filter",
+            options=[{"label": "Exibir apenas participantes", "value": "cdb"}],
+            value=[],
+            inline=True,
+            inputStyle={"margin-right": "5px"},
+            style={"margin-bottom": "10px"}
+        ),
         dl.Map(
             id="map",
             center=[-19.9191, -43.9386],
@@ -59,7 +68,7 @@ def main():
                     color="black", fillColor="black", fillOpacity=0.7
                 ),
                 # Grupo que receberá os marcadores filtrados
-                dl.GeoJSON(id="markers-layer", cluster=True, zoomToBoundsOnClick=True, superClusterOptions={"radius": 60}),
+                dl.GeoJSON(id="markers-layer", cluster=True, zoomToBoundsOnClick=True, superClusterOptions={"radius": 100}),
 
                 # Ferramenta de desenho: permite desenhar apenas retângulos
                 dl.FeatureGroup([
@@ -101,9 +110,10 @@ def main():
     Output("table", "data"),
     Input("map", "zoom"),
     Input("map", "bounds"),
-    Input("edit_control", "geojson")
+    Input("edit_control", "geojson"),
+    Input("cdb_filter", "value")
     )
-    def update_visible_markers(zoom, bounds, drawn_geojson):
+    def update_visible_markers(zoom, bounds, drawn_geojson,cdb_filter):
         if bounds is None:
             raise dash.exceptions.PreventUpdate
 
@@ -137,6 +147,10 @@ def main():
         table_data = []
         for idx in filtered_indices:
             row = df.iloc[idx]
+            is_cdb = str(row['CDB2025_Participante']).strip().upper() == "SIM"
+
+            if "cdb" in cdb_filter and not is_cdb:
+                continue
             lat, lon = row['coords']
             is_cdb = str(row['CDB2025_Participante']).strip().upper() == "SIM"
             nome_exibir = (
@@ -151,6 +165,15 @@ def main():
                 f"{row['NOME_LOGRADOURO']}, {row['NUMERO_IMOVEL']} – {row['NOME_BAIRRO']}<br>"
                 f"<b>CDB2025 Participante:</b> {'Sim' if is_cdb else 'Não'}"
             )
+            if is_cdb:
+                prato = row['PRATO'] if pd.notna(row['PRATO']) else ''
+                desc = row['DESC_PRATO'] if pd.notna(row['DESC_PRATO']) else ''
+                prato = str(prato).strip()
+                desc = str(desc).strip()
+                if prato:
+                    popup_text += f"<br><b>Prato participante:</b> {prato}"
+                if desc:
+                    popup_text += f"<br><b>Descrição:</b> {desc}"
 
             markers.append({
                 "lat": lat,

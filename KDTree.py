@@ -2,11 +2,9 @@
 class KDNode:
     __slots__ = ("point", "index", "left", "right", "axis")
     def __init__(self, point, index, axis):
-        """
-        point: lista[lat, lon]
-        index: índice original no DataFrame
-        axis: dimensão de divisão (0 = latitude, 1 = longitude)
-        """
+        # point: lista[lat, lon]
+        # index: índice original no DataFrame
+        # axis: dimensão de divisão (0 = latitude, 1 = longitude)
 
         self.point = point
         self.index = index
@@ -16,14 +14,9 @@ class KDNode:
 
 
 def build_kdtree(points, depth=0) :
-    """
-    Constrói a KD-Tree recurtsivamente a partir da lista de pontos.
-    
-    points: lista de tuplas ([lat, lon], indice_no_df)
-    depth: controla alternância entre latitude e longitude
+    # Constrói a KD-Tree recurtsivamente a partir da lista de pontos
 
-    Retorna a raiz (KDNode) da subárvore construída.
-    """
+    # Retorna a raiz (KDNode) da subárvore construída
 
     if not points:
         return None
@@ -46,15 +39,8 @@ def build_kdtree(points, depth=0) :
 
 
 def range_search(node, rect, found=None):
-    """
-    Percorre a KD-Tree e coleta índices dentro do retângulo.
-    
-    node: nó atual da KD-Tree
-    rect: ((sw_lat, sw_lon), (ne_lat, ne_lon)), canto sudoeste e nordeste
-    found: lista acumuladora de índices encontrados (inicialmente None)
-
-    Retorna lista de índices (linhas do DataFrame) cujos pontos caem dentro do retângulo.
-    """
+    # Percorre a KD-Tree e coleta índices dentro do retângulo
+    # Retorna lista de índices (linhas do DataFrame) cujos pontos caem dentro do retângulo
 
     if node is None:
         return found
@@ -73,12 +59,6 @@ def range_search(node, rect, found=None):
 
 
     # 2) Decide se precisa visitar a subárvore esquerda (ou direita) com base no eixo:
-    #    - Se axis == 0, então o nó divide por latitude: 
-    #       * subárvore esquerda (node.left) pode conter pontos com lat >= sw_lat
-    #       * subárvore direita (node.right) pode conter pontos com lat <= ne_lat
-    #    - Se axis == 1, então o nó divide por longitude:
-    #       * subárvore esquerda (node.left) pode conter pontos com lon >= sw_lon
-    #       * subárvore direita (node.right) pode conter pontos com lon <= ne_lon
     if axis == 0:  # comparando latitude
         if sw_lat <= lat:
             range_search(node.left, rect, found)
