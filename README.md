@@ -4,6 +4,8 @@
 **Arthur Guimarães Ferreira**   
 **Leonardo Romano Andrade**   
 
+**Link para página hospedada no Render: https://tp1-algoritmos2-h8eg.onrender.com**   
+
 Este programa cria uma aplicação web interativa em *Dash* que mostra, sobre um mapa de Belo Horizonte, os pontos de restaurantes e bares (incluindo participantes do Comida Di Buteco 2025). Ao iniciar, o script:
 
 1. Carrega o polígono de Belo Horizonte e uma tabela de estabelecimentos com latitude/longitude.
