@@ -171,7 +171,7 @@ def main():
                 prato = str(prato).strip()
                 desc = str(desc).strip()
                 if prato:
-                    popup_text += f"<br><b>Prato participante:</b> {prato}"
+                    popup_text += f"<br><b>Prato Participante:</b> {prato}"
                 if desc:
                     popup_text += f"<br><b>Descrição:</b> {desc}"
 

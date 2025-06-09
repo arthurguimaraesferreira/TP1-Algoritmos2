@@ -1,0 +1,4 @@
+dash
+dash-leaflet
+pandas
+gunicorn
