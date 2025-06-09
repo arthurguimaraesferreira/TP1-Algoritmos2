@@ -198,7 +198,7 @@ def main():
     import os
     port = int(os.environ.get("PORT", 8050))
     # expõe em todas as interfaces para que o Render (ou outro PaaS) detecte a porta
-    app.run_server(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=False)
 
 
 if __name__ == '__main__':
